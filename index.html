@@ -40,60 +40,33 @@
     ::-webkit-scrollbar-track { background: transparent; }
     .event-img { mask-image: linear-gradient(to bottom, black 60%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%); }
 
-    /* EDM Ambient Background */
+    /* EDM Ambient Background — only visible in empty space behind content */
     .edm-wrap { position: fixed; inset: 0; pointer-events: none; z-index: -1; overflow: hidden; }
     .edm-orb {
-      position: absolute; border-radius: 50%; filter: blur(80px);
-      mix-blend-mode: screen;
+      position: absolute; border-radius: 50%; filter: blur(120px);
     }
-    .edm-orb-1 { width: 500px; height: 500px; top: -10%; left: 5%; background: rgba(99,102,241,0.10); animation: orb-float-1 16s ease-in-out infinite; }
-    .edm-orb-2 { width: 400px; height: 400px; top: 20%; right: -5%; background: rgba(139,92,246,0.08); animation: orb-float-2 20s ease-in-out infinite; }
-    .edm-orb-3 { width: 350px; height: 350px; bottom: 10%; left: 15%; background: rgba(236,72,153,0.07); animation: orb-float-3 18s ease-in-out infinite; }
-    .edm-orb-4 { width: 300px; height: 300px; top: 50%; left: 50%; background: rgba(6,182,212,0.06); animation: orb-float-4 14s ease-in-out infinite; }
-    .edm-orb-5 { width: 450px; height: 450px; bottom: -5%; right: 10%; background: rgba(168,85,247,0.08); animation: orb-float-5 22s ease-in-out infinite; }
-    .edm-orb-6 { width: 250px; height: 250px; top: 5%; left: 45%; background: rgba(99,102,241,0.06); animation: orb-float-6 12s ease-in-out infinite; }
+    .edm-orb-1 { width: 600px; height: 600px; top: -15%; left: -5%; background: rgba(99,102,241,0.12); animation: orb-1 16s ease-in-out infinite; }
+    .edm-orb-2 { width: 500px; height: 500px; top: 15%; right: -10%; background: rgba(139,92,246,0.10); animation: orb-2 20s ease-in-out infinite; }
+    .edm-orb-3 { width: 450px; height: 450px; bottom: 5%; left: 10%; background: rgba(236,72,153,0.08); animation: orb-3 18s ease-in-out infinite; }
+    .edm-orb-4 { width: 400px; height: 400px; top: 45%; left: 45%; background: rgba(6,182,212,0.07); animation: orb-4 14s ease-in-out infinite; }
+    .edm-orb-5 { width: 550px; height: 550px; bottom: -10%; right: 5%; background: rgba(168,85,247,0.09); animation: orb-5 22s ease-in-out infinite; }
 
-    @keyframes orb-float-1 { 0%,100% { transform: translate(0,0) scale(1); opacity: 0.10; } 25% { transform: translate(120px,80px) scale(1.2); opacity: 0.14; } 50% { transform: translate(60px,160px) scale(0.9); opacity: 0.08; } 75% { transform: translate(-40px,100px) scale(1.1); opacity: 0.12; } }
-    @keyframes orb-float-2 { 0%,100% { transform: translate(0,0) scale(1); opacity: 0.08; } 33% { transform: translate(-100px,60px) scale(1.3); opacity: 0.13; } 66% { transform: translate(-50px,-80px) scale(0.85); opacity: 0.06; } }
-    @keyframes orb-float-3 { 0%,100% { transform: translate(0,0) scale(1); opacity: 0.07; } 50% { transform: translate(80px,-60px) scale(1.15); opacity: 0.12; } }
-    @keyframes orb-float-4 { 0%,100% { transform: translate(-50%,-50%) scale(1); opacity: 0.06; } 33% { transform: translate(-40%,-60%) scale(1.4); opacity: 0.11; } 66% { transform: translate(-60%,-40%) scale(0.8); opacity: 0.04; } }
-    @keyframes orb-float-5 { 0%,100% { transform: translate(0,0) scale(1); opacity: 0.08; } 25% { transform: translate(-60px,-100px) scale(1.2); opacity: 0.12; } 75% { transform: translate(40px,-50px) scale(0.9); opacity: 0.06; } }
-    @keyframes orb-float-6 { 0%,100% { transform: translate(0,0) scale(1); opacity: 0.06; } 50% { transform: translate(100px,80px) scale(1.3); opacity: 0.10; } }
-
-    /* Pulsing ring bursts — like bass drops */
-    .edm-ring {
-      position: absolute; border-radius: 50%;
-      border: 1px solid rgba(99,102,241,0.08);
-      animation: ring-expand var(--ring-dur) ease-out infinite;
-      animation-delay: var(--ring-delay);
-    }
-    @keyframes ring-expand { 0% { transform: translate(-50%,-50%) scale(0); opacity: 0.12; } 100% { transform: translate(-50%,-50%) scale(1); opacity: 0; } }
-
-    /* Floating particles */
-    .edm-particle {
-      position: absolute; border-radius: 50%; background: rgba(167,139,250,0.3);
-      animation: particle-drift var(--p-dur) linear infinite;
-      animation-delay: var(--p-delay);
-    }
-    @keyframes particle-drift {
-      0% { transform: translateY(0) scale(1); opacity: 0; }
-      10% { opacity: var(--p-opacity); }
-      90% { opacity: var(--p-opacity); }
-      100% { transform: translateY(var(--p-travel)) scale(0.5); opacity: 0; }
-    }
+    @keyframes orb-1 { 0%,100% { transform: translate(0,0) scale(1); } 25% { transform: translate(100px,60px) scale(1.15); } 50% { transform: translate(40px,120px) scale(0.9); } 75% { transform: translate(-60px,80px) scale(1.1); } }
+    @keyframes orb-2 { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(-80px,50px) scale(1.2); } 66% { transform: translate(-40px,-60px) scale(0.85); } }
+    @keyframes orb-3 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(60px,-50px) scale(1.1); } }
+    @keyframes orb-4 { 0%,100% { transform: translate(-50%,-50%) scale(1); } 33% { transform: translate(-40%,-60%) scale(1.3); } 66% { transform: translate(-60%,-40%) scale(0.8); } }
+    @keyframes orb-5 { 0%,100% { transform: translate(0,0) scale(1); } 25% { transform: translate(-50px,-80px) scale(1.15); } 75% { transform: translate(30px,-40px) scale(0.9); } }
   </style>
 </head>
 <body class="text-white min-h-screen font-sans antialiased">
 
   <!-- EDM animated background -->
-  <div class="edm-wrap" id="edm-bg">
+  <div class="edm-wrap">
     <div class="edm-orb edm-orb-1"></div>
     <div class="edm-orb edm-orb-2"></div>
     <div class="edm-orb edm-orb-3"></div>
     <div class="edm-orb edm-orb-4"></div>
     <div class="edm-orb edm-orb-5"></div>
-    <div class="edm-orb edm-orb-6"></div>
-    <!-- Rings and particles added by JS -->
   </div>
 
   <!-- Header -->
@@ -604,45 +577,7 @@
     // ── Keyboard ──
     document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeDayPopup(); } });
 
-    // ── EDM Background: Rings & Particles ──
-    (function initEDM() {
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      const bg = document.getElementById('edm-bg');
-      const ringColors = ['rgba(99,102,241,0.06)', 'rgba(139,92,246,0.05)', 'rgba(236,72,153,0.04)', 'rgba(6,182,212,0.05)'];
-
-      // Create expanding ring bursts at random positions
-      for (let i = 0; i < 6; i++) {
-        const ring = document.createElement('div');
-        ring.className = 'edm-ring';
-        const size = 300 + Math.random() * 600;
-        ring.style.width = size + 'px';
-        ring.style.height = size + 'px';
-        ring.style.left = (10 + Math.random() * 80) + '%';
-        ring.style.top = (10 + Math.random() * 80) + '%';
-        ring.style.borderColor = ringColors[i % ringColors.length];
-        ring.style.setProperty('--ring-dur', (6 + Math.random() * 8) + 's');
-        ring.style.setProperty('--ring-delay', (Math.random() * 6) + 's');
-        bg.appendChild(ring);
-      }
-
-      // Create floating particles
-      const particleColors = ['rgba(167,139,250,0.4)', 'rgba(99,102,241,0.3)', 'rgba(236,72,153,0.3)', 'rgba(6,182,212,0.3)'];
-      for (let i = 0; i < 30; i++) {
-        const p = document.createElement('div');
-        p.className = 'edm-particle';
-        const size = 2 + Math.random() * 4;
-        p.style.width = size + 'px';
-        p.style.height = size + 'px';
-        p.style.left = (Math.random() * 100) + '%';
-        p.style.bottom = (-5 + Math.random() * 10) + '%';
-        p.style.background = particleColors[i % particleColors.length];
-        p.style.setProperty('--p-dur', (8 + Math.random() * 16) + 's');
-        p.style.setProperty('--p-delay', (Math.random() * 12) + 's');
-        p.style.setProperty('--p-opacity', (0.15 + Math.random() * 0.3).toFixed(2));
-        p.style.setProperty('--p-travel', '-' + (60 + Math.random() * 40) + 'vh');
-        bg.appendChild(p);
-      }
-    })();
+    // No JS needed — pure CSS orb animations
 
     // ── Init ──
     (async () => {
