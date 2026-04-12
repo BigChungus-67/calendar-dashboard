@@ -1,12 +1,5 @@
 [
   {
-    "id": 7,
-    "name": "Board Meeting",
-    "date": "2026-07-10T10:00:00.000Z",
-    "image": "",
-    "color": "#6366f1"
-  },
-  {
     "id": 8,
     "name": "Hackathon Weekend",
     "date": "2026-08-22T09:00:00.000Z",
