@@ -22,5 +22,13 @@
     "image": "https://d3vhc53cl8e8km.cloudfront.net/artists/4169/69be204c-3991-11ef-b991-0ee6b8365494.jpg",
     "color": "#6366f1",
     "endDate": "2026-04-26T05:00:00.000Z"
+  },
+  {
+    "id": 1775990219620,
+    "name": "Gryffin",
+    "date": "2026-05-29T18:00:00.000Z",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/1/1f/Griffyn_%2843228990201%29.jpg",
+    "color": "#6366f1",
+    "endDate": "2026-05-29T22:00:00.000Z"
   }
 ]
