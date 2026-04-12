@@ -40,34 +40,14 @@
     ::-webkit-scrollbar-track { background: transparent; }
     .event-img { mask-image: linear-gradient(to bottom, black 60%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%); }
 
-    /* EDM Background */
-    .edm-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
-    .edm-glow-1 { position: absolute; width: 800px; height: 800px; border-radius: 50%; filter: blur(120px); opacity: 0.06; animation: edm-drift-1 12s ease-in-out infinite; background: radial-gradient(circle, #6366f1, #8b5cf6); top: -200px; left: -100px; }
-    .edm-glow-2 { position: absolute; width: 600px; height: 600px; border-radius: 50%; filter: blur(100px); opacity: 0.04; animation: edm-drift-2 15s ease-in-out infinite; background: radial-gradient(circle, #ec4899, #8b5cf6); bottom: -100px; right: -100px; }
-    .edm-glow-3 { position: absolute; width: 400px; height: 400px; border-radius: 50%; filter: blur(80px); opacity: 0.03; animation: edm-drift-3 10s ease-in-out infinite; background: radial-gradient(circle, #06b6d4, #6366f1); top: 40%; left: 50%; }
-
-    @keyframes edm-drift-1 { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(80px, 40px) scale(1.1); } 66% { transform: translate(-40px, 60px) scale(0.95); } }
-    @keyframes edm-drift-2 { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-60px, -50px) scale(1.15); } }
-    @keyframes edm-drift-3 { 0%, 100% { transform: translate(-50%, 0) scale(1); opacity: 0.03; } 50% { transform: translate(-50%, -30px) scale(1.2); opacity: 0.06; } }
-
-    /* Equalizer bars */
-    .eq-container { position: fixed; bottom: 0; left: 0; right: 0; height: 80px; display: flex; align-items: flex-end; justify-content: center; gap: 3px; pointer-events: none; z-index: 0; opacity: 0.08; }
-    .eq-bar { width: 3px; border-radius: 2px 2px 0 0; background: linear-gradient(to top, #6366f1, #a78bfa); animation: eq-bounce var(--eq-dur) ease-in-out infinite; transform-origin: bottom; }
-    @keyframes eq-bounce { 0%, 100% { height: var(--eq-min); } 50% { height: var(--eq-max); } }
+    /* EDM Canvas Background */
+    #edm-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
   </style>
 </head>
 <body class="text-white min-h-screen font-sans antialiased">
 
   <!-- EDM animated background -->
-  <div class="edm-bg">
-    <div class="edm-glow-1"></div>
-    <div class="edm-glow-2"></div>
-    <div class="edm-glow-3"></div>
-  </div>
-  <!-- Subtle grid overlay -->
-  <div class="fixed inset-0 pointer-events-none z-0" style="background-image: radial-gradient(rgba(255,255,255,0.02) 1px, transparent 1px); background-size: 24px 24px;"></div>
-  <!-- Equalizer bars -->
-  <div class="eq-container" id="eq-bars"></div>
+  <canvas id="edm-canvas"></canvas>
 
   <!-- Header -->
   <header class="sticky top-0 z-30 border-b border-white/[0.06]" style="background: rgba(9,9,11,0.8); backdrop-filter: blur(16px);">
@@ -577,22 +557,104 @@
     // ── Keyboard ──
     document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeDayPopup(); } });
 
-    // ── Equalizer Bars ──
-    (function initEQ() {
-      const container = document.getElementById('eq-bars');
-      const barCount = 60;
-      for (let i = 0; i < barCount; i++) {
-        const bar = document.createElement('div');
-        bar.className = 'eq-bar';
-        const minH = 4 + Math.random() * 8;
-        const maxH = 20 + Math.random() * 50;
-        const dur = 0.8 + Math.random() * 1.5;
-        bar.style.setProperty('--eq-min', minH + 'px');
-        bar.style.setProperty('--eq-max', maxH + 'px');
-        bar.style.setProperty('--eq-dur', dur + 's');
-        bar.style.animationDelay = (Math.random() * 2) + 's';
-        container.appendChild(bar);
+    // ── EDM Canvas Background ──
+    (function initEDM() {
+      const canvas = document.getElementById('edm-canvas');
+      const ctx = canvas.getContext('2d');
+      let w, h;
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
       }
+      resize();
+      window.addEventListener('resize', resize);
+
+      // Orbs — drifting color blobs
+      const orbs = [
+        { x: 0.2, y: 0.3, r: 300, color: [99, 102, 241], speed: 0.0004, phase: 0 },
+        { x: 0.8, y: 0.7, r: 250, color: [139, 92, 246], speed: 0.0003, phase: 2 },
+        { x: 0.5, y: 0.5, r: 200, color: [236, 72, 153], speed: 0.0005, phase: 4 },
+        { x: 0.3, y: 0.8, r: 180, color: [6, 182, 212], speed: 0.00035, phase: 1 },
+        { x: 0.7, y: 0.2, r: 220, color: [168, 85, 247], speed: 0.00045, phase: 3 },
+      ];
+
+      // Waveform params — multiple sine waves for that EDM oscilloscope look
+      const waves = [
+        { amp: 30, freq: 0.008, speed: 0.02, color: 'rgba(99,102,241,0.12)' },
+        { amp: 20, freq: 0.012, speed: 0.015, color: 'rgba(139,92,246,0.08)' },
+        { amp: 15, freq: 0.006, speed: 0.025, color: 'rgba(236,72,153,0.06)' },
+      ];
+
+      // Particles — floating specks like stage dust
+      const particles = [];
+      for (let i = 0; i < 40; i++) {
+        particles.push({
+          x: Math.random() * w, y: Math.random() * h,
+          vx: (Math.random() - 0.5) * 0.3, vy: -0.2 - Math.random() * 0.5,
+          size: 1 + Math.random() * 2, opacity: 0.1 + Math.random() * 0.2,
+          pulse: Math.random() * Math.PI * 2
+        });
+      }
+
+      let t = 0;
+
+      function draw() {
+        if (reducedMotion) return;
+        ctx.clearRect(0, 0, w, h);
+        t += 1;
+
+        // Draw orbs
+        orbs.forEach(orb => {
+          const ox = (orb.x + Math.sin(t * orb.speed + orb.phase) * 0.15) * w;
+          const oy = (orb.y + Math.cos(t * orb.speed * 0.7 + orb.phase) * 0.1) * h;
+          const pulse = 1 + Math.sin(t * orb.speed * 3) * 0.15;
+          const r = orb.r * pulse;
+          const grad = ctx.createRadialGradient(ox, oy, 0, ox, oy, r);
+          grad.addColorStop(0, `rgba(${orb.color.join(',')}, 0.07)`);
+          grad.addColorStop(0.5, `rgba(${orb.color.join(',')}, 0.03)`);
+          grad.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.fillStyle = grad;
+          ctx.fillRect(ox - r, oy - r, r * 2, r * 2);
+        });
+
+        // Draw waveforms across the middle area
+        waves.forEach((wave, wi) => {
+          const yBase = h * (0.35 + wi * 0.15);
+          ctx.beginPath();
+          ctx.moveTo(0, yBase);
+          for (let x = 0; x <= w; x += 3) {
+            const beat = Math.sin(t * 0.03) * 0.5 + 0.5; // simulated beat pulse
+            const y = yBase + Math.sin(x * wave.freq + t * wave.speed) * wave.amp * (0.6 + beat * 0.4)
+                     + Math.sin(x * wave.freq * 2.3 + t * wave.speed * 1.5) * wave.amp * 0.3;
+            ctx.lineTo(x, y);
+          }
+          ctx.strokeStyle = wave.color;
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        });
+
+        // Draw particles
+        particles.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.pulse += 0.02;
+          const flicker = 0.5 + Math.sin(p.pulse) * 0.5;
+
+          if (p.y < -10) { p.y = h + 10; p.x = Math.random() * w; }
+          if (p.x < -10) p.x = w + 10;
+          if (p.x > w + 10) p.x = -10;
+
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size * flicker, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(167, 139, 250, ${p.opacity * flicker})`;
+          ctx.fill();
+        });
+
+        requestAnimationFrame(draw);
+      }
+      draw();
     })();
 
     // ── Init ──
