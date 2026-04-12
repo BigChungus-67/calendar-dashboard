@@ -1,12 +1,5 @@
 [
   {
-    "id": 1,
-    "name": "Tech Summit 2026",
-    "date": "2026-04-18T09:00:00.000Z",
-    "image": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=300&fit=crop",
-    "color": "#6366f1"
-  },
-  {
     "id": 2,
     "name": "Design Conference",
     "date": "2026-04-25T10:30:00.000Z",
