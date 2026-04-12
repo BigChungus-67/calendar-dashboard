@@ -70,5 +70,13 @@
     "image": "https://dice-media.imgix.net/attachments/2025-12-09/96aa0c3b-76af-49ba-ae3f-10f4410dc27b.jpg?rect=0%2C0%2C1080%2C1080&auto=format%2Ccompress&q=80&w=328&h=328&fit=crop&crop=faces%2Ccenter",
     "color": "#6366f1",
     "endDate": "2026-07-12T22:00:00.000Z"
+  },
+  {
+    "id": 1775990642550,
+    "name": "Lost Minds Festival",
+    "date": "2026-07-10T07:00:00.000Z",
+    "image": "https://networksites.livenationinternational.com/networksites/g43jftly/lm_web_810x1080.jpg?format=webp&width=3840&quality=75",
+    "color": "#6366f1",
+    "endDate": "2026-07-11T22:00:00.000Z"
   }
 ]
