@@ -62,5 +62,13 @@
     "image": "https://www.romanianfriend.com/uploads/media/untold-festival-homepage-favourites-gallery.jpg",
     "color": "#6366f1",
     "endDate": "2026-08-09T23:00:00.000Z"
+  },
+  {
+    "id": 1775990559761,
+    "name": "Experts Only Tofte Manor",
+    "date": "2026-07-12T13:00:00.000Z",
+    "image": "https://dice-media.imgix.net/attachments/2025-12-09/96aa0c3b-76af-49ba-ae3f-10f4410dc27b.jpg?rect=0%2C0%2C1080%2C1080&auto=format%2Ccompress&q=80&w=328&h=328&fit=crop&crop=faces%2Ccenter",
+    "color": "#6366f1",
+    "endDate": "2026-07-12T22:00:00.000Z"
   }
 ]
