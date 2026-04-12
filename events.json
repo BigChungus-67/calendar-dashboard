@@ -46,5 +46,13 @@
     "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcROOePsn5aJIY4GqPv3EVSI5v7rzUhb3giIwQ&s",
     "color": "#6366f1",
     "endDate": "2026-06-29T22:00:00.000Z"
+  },
+  {
+    "id": 1775990437024,
+    "name": "Tomorrowland W1",
+    "date": "2026-07-14T23:00:00.000Z",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTiXOGLbMmLqD7tk3CyW3OfZkfamoLv5uTXXw&s",
+    "color": "#6366f1",
+    "endDate": "2026-07-20T10:40:00.000Z"
   }
 ]
