@@ -41,7 +41,7 @@
     .event-img { mask-image: linear-gradient(to bottom, black 60%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%); }
 
     /* EDM Canvas Background */
-    #edm-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+    #edm-canvas { position: fixed; inset: 0; pointer-events: none; z-index: -1; }
   </style>
 </head>
 <body class="text-white min-h-screen font-sans antialiased">
@@ -571,8 +571,8 @@
       }
 
       // Bar config
-      const barWidth = 4;
-      const gap = 2;
+      const barWidth = 6;
+      const gap = 3;
       let bars = [];
       const colors = [
         [99, 102, 241],   // indigo
@@ -587,7 +587,9 @@
         const count = Math.ceil(w / (barWidth + gap));
         bars = [];
         for (let i = 0; i < count; i++) {
-          // Each bar has multiple sine components for organic movement
+          const ci = Math.floor((i / count) * colors.length) % colors.length;
+          const ci2 = (ci + 1) % colors.length;
+          const mix = ((i / count) * colors.length) % 1;
           bars.push({
             x: i * (barWidth + gap),
             phase1: Math.random() * Math.PI * 2,
@@ -596,8 +598,11 @@
             speed1: 0.015 + Math.random() * 0.02,
             speed2: 0.008 + Math.random() * 0.012,
             speed3: 0.003 + Math.random() * 0.006,
-            maxH: 0.15 + Math.random() * 0.55,  // max height as fraction of canvas
-            colorIdx: Math.floor((i / count) * colors.length),
+            maxH: 0.15 + Math.random() * 0.55,
+            // Pre-compute color
+            r: (colors[ci][0] + (colors[ci2][0] - colors[ci][0]) * mix) | 0,
+            g: (colors[ci][1] + (colors[ci2][1] - colors[ci][1]) * mix) | 0,
+            b: (colors[ci][2] + (colors[ci2][2] - colors[ci][2]) * mix) | 0,
           });
         }
       }
@@ -618,52 +623,23 @@
         const beatIntensity = 0.3 + beat1 * 0.4 + beat2 * 0.3;
 
         bars.forEach(bar => {
-          // Combine multiple sine waves for natural-looking frequency response
           const v1 = Math.sin(t * bar.speed1 + bar.phase1) * 0.5 + 0.5;
           const v2 = Math.sin(t * bar.speed2 + bar.phase2) * 0.3 + 0.5;
           const v3 = Math.sin(t * bar.speed3 + bar.phase3) * 0.2 + 0.5;
           const value = (v1 * 0.5 + v2 * 0.3 + v3 * 0.2) * beatIntensity;
           const barH = value * bar.maxH * h;
+          if (barH < 2) return;
 
-          if (barH < 1) return;
+          const alpha = 0.04 + value * 0.06;
 
-          // Color interpolation across the spectrum
-          const ci = (bar.colorIdx + Math.sin(t * 0.005) * 0.5) % colors.length;
-          const ci1 = Math.floor(ci) % colors.length;
-          const ci2 = (ci1 + 1) % colors.length;
-          const mix = ci - Math.floor(ci);
-          const r = colors[ci1][0] + (colors[ci2][0] - colors[ci1][0]) * mix;
-          const g = colors[ci1][1] + (colors[ci2][1] - colors[ci1][1]) * mix;
-          const b = colors[ci1][2] + (colors[ci2][2] - colors[ci1][2]) * mix;
-
-          // Draw bar with gradient fade
-          const grad = ctx.createLinearGradient(bar.x, h, bar.x, h - barH);
-          grad.addColorStop(0, `rgba(${r|0},${g|0},${b|0}, 0.12)`);
-          grad.addColorStop(0.5, `rgba(${r|0},${g|0},${b|0}, 0.06)`);
-          grad.addColorStop(1, `rgba(${r|0},${g|0},${b|0}, 0)`);
-          ctx.fillStyle = grad;
+          // Bottom bars
+          ctx.fillStyle = `rgba(${bar.r},${bar.g},${bar.b},${alpha})`;
           ctx.fillRect(bar.x, h - barH, barWidth, barH);
 
-          // Mirror from top
-          const grad2 = ctx.createLinearGradient(bar.x, 0, bar.x, barH * 0.4);
-          grad2.addColorStop(0, `rgba(${r|0},${g|0},${b|0}, 0.05)`);
-          grad2.addColorStop(1, `rgba(${r|0},${g|0},${b|0}, 0)`);
-          ctx.fillStyle = grad2;
-          ctx.fillRect(bar.x, 0, barWidth, barH * 0.4);
-
-          // Bright tip on tall bars
-          if (value > 0.5) {
-            ctx.fillStyle = `rgba(${r|0},${g|0},${b|0}, ${0.15 + value * 0.1})`;
-            ctx.fillRect(bar.x, h - barH, barWidth, 2);
-          }
+          // Top mirror (shorter)
+          ctx.fillStyle = `rgba(${bar.r},${bar.g},${bar.b},${alpha * 0.4})`;
+          ctx.fillRect(bar.x, 0, barWidth, barH * 0.3);
         });
-
-        // Subtle horizontal glow line at the base
-        const glowGrad = ctx.createLinearGradient(0, h, 0, h - 3);
-        glowGrad.addColorStop(0, `rgba(99, 102, 241, ${0.05 + beatIntensity * 0.05})`);
-        glowGrad.addColorStop(1, 'rgba(99, 102, 241, 0)');
-        ctx.fillStyle = glowGrad;
-        ctx.fillRect(0, h - 3, w, 3);
 
         requestAnimationFrame(draw);
       }
