@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event Countdown Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+        }
+      }
+    }
+  </script>
+  <style>
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+    body { background: #09090b; }
+    .countdown-digit { font-variant-numeric: tabular-nums; }
+    .glass { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(12px); }
+    .glass-light { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); }
+    .tile-glow:hover { box-shadow: 0 0 40px -12px rgba(99,102,241,0.3); }
+    .gradient-text { background: linear-gradient(135deg, #a78bfa 0%, #818cf8 50%, #6366f1 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .accent-gradient { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%); }
+    .accent-gradient-hover:hover { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #8b5cf6 100%); }
+    .month-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); transition: all 0.2s; }
+    .month-card:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
+    .shimmer { position: relative; overflow: hidden; }
+    .shimmer::after { content:''; position:absolute; inset:0; background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.03) 50%, transparent 100%); transform: translateX(-100%); animation: shimmer 3s infinite; }
+    @keyframes shimmer { 100% { transform: translateX(100%); } }
+    .pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+    @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    .event-img { mask-image: linear-gradient(to bottom, black 60%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%); }
+  </style>
+</head>
+<body class="text-white min-h-screen font-sans antialiased">
+
+  <!-- Subtle grid background -->
+  <div class="fixed inset-0 pointer-events-none" style="background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 24px 24px;"></div>
+  <!-- Top glow -->
+  <div class="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] pointer-events-none" style="background: radial-gradient(ellipse, rgba(99,102,241,0.08) 0%, transparent 70%);"></div>
+
+  <!-- Header -->
+  <header class="sticky top-0 z-30 border-b border-white/[0.06]" style="background: rgba(9,9,11,0.8); backdrop-filter: blur(16px);">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg accent-gradient flex items-center justify-center">
+          <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        </div>
+        <span class="text-[15px] font-semibold tracking-tight text-white/90">Events</span>
+      </div>
+      <button onclick="openModal()" class="cursor-pointer inline-flex items-center gap-2 accent-gradient accent-gradient-hover text-white font-medium text-[13px] px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:ring-offset-2 focus:ring-offset-[#09090b] shadow-lg shadow-indigo-500/20">
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        New Event
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10 relative">
+
+    <!-- Countdown Tiles -->
+    <section>
+      <div class="flex items-center gap-3 mb-5">
+        <h2 class="text-[15px] font-semibold text-white/70">Upcoming</h2>
+        <span id="event-count" class="text-[11px] font-semibold text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full"></span>
+      </div>
+      <div id="tiles-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      </div>
+      <div id="no-events" class="hidden text-center py-20">
+        <div class="w-12 h-12 rounded-2xl glass mx-auto mb-4 flex items-center justify-center">
+          <svg class="w-6 h-6 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        </div>
+        <p class="text-sm font-medium text-white/30">No upcoming events</p>
+        <p class="text-xs text-white/15 mt-1">Click "New Event" to get started</p>
+      </div>
+    </section>
+
+    <!-- Year Calendar -->
+    <section>
+      <div class="flex items-center justify-between mb-5">
+        <button onclick="changeYear(-1)" class="cursor-pointer p-2 rounded-lg hover:bg-white/5 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-indigo-500/50" aria-label="Previous year">
+          <svg class="w-4 h-4 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <h2 id="year-label" class="text-[15px] font-semibold text-white/70"></h2>
+        <button onclick="changeYear(1)" class="cursor-pointer p-2 rounded-lg hover:bg-white/5 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-indigo-500/50" aria-label="Next year">
+          <svg class="w-4 h-4 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+      <div id="year-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3"></div>
+    </section>
+  </main>
+
+  <!-- Add Event Modal -->
+  <div id="modal-overlay" class="fixed inset-0 z-50 bg-black/60 hidden items-center justify-center p-4" style="backdrop-filter: blur(8px);" onclick="if(event.target===this)closeModal()">
+    <div class="glass rounded-2xl w-full max-w-md overflow-hidden shadow-2xl shadow-black/40" role="dialog" aria-labelledby="modal-title" style="background: rgba(24,24,27,0.95); border: 1px solid rgba(255,255,255,0.08);">
+      <div class="px-6 py-4 border-b border-white/[0.06] flex items-center justify-between">
+        <h3 id="modal-title" class="font-semibold text-[15px]">New Event</h3>
+        <button onclick="closeModal()" class="cursor-pointer p-1.5 rounded-lg hover:bg-white/5 transition-colors duration-150 focus:outline-none" aria-label="Close">
+          <svg class="w-4 h-4 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <form id="event-form" onsubmit="handleAddEvent(event)" class="p-6 space-y-5">
+        <div>
+          <label for="event-name" class="block text-[12px] font-medium text-white/40 uppercase tracking-wider mb-2">Event Name</label>
+          <input id="event-name" type="text" required placeholder="Tech Conference 2026" class="w-full px-4 py-2.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-white placeholder-white/20 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent transition-all duration-150">
+        </div>
+        <div>
+          <label for="event-date" class="block text-[12px] font-medium text-white/40 uppercase tracking-wider mb-2">Date &amp; Time</label>
+          <input id="event-date" type="datetime-local" required class="w-full px-4 py-2.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent transition-all duration-150" style="color-scheme: dark;">
+        </div>
+        <div>
+          <label for="event-image" class="block text-[12px] font-medium text-white/40 uppercase tracking-wider mb-2">Image URL <span class="normal-case tracking-normal text-white/20">(optional)</span></label>
+          <input id="event-image" type="url" placeholder="https://images.unsplash.com/..." class="w-full px-4 py-2.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-white placeholder-white/20 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent transition-all duration-150">
+        </div>
+        <div>
+          <label class="block text-[12px] font-medium text-white/40 uppercase tracking-wider mb-2">Color</label>
+          <div id="color-picker" class="flex gap-2">
+            <button type="button" data-color="#6366f1" class="cursor-pointer w-7 h-7 rounded-full bg-[#6366f1] ring-2 ring-offset-2 ring-offset-[#18181b] ring-[#6366f1] transition-all duration-150 focus:outline-none" aria-label="Indigo"></button>
+            <button type="button" data-color="#f97316" class="cursor-pointer w-7 h-7 rounded-full bg-[#f97316] ring-2 ring-offset-2 ring-offset-[#18181b] ring-transparent hover:ring-[#f97316] transition-all duration-150 focus:outline-none" aria-label="Orange"></button>
+            <button type="button" data-color="#8b5cf6" class="cursor-pointer w-7 h-7 rounded-full bg-[#8b5cf6] ring-2 ring-offset-2 ring-offset-[#18181b] ring-transparent hover:ring-[#8b5cf6] transition-all duration-150 focus:outline-none" aria-label="Purple"></button>
+            <button type="button" data-color="#ec4899" class="cursor-pointer w-7 h-7 rounded-full bg-[#ec4899] ring-2 ring-offset-2 ring-offset-[#18181b] ring-transparent hover:ring-[#ec4899] transition-all duration-150 focus:outline-none" aria-label="Pink"></button>
+            <button type="button" data-color="#10b981" class="cursor-pointer w-7 h-7 rounded-full bg-[#10b981] ring-2 ring-offset-2 ring-offset-[#18181b] ring-transparent hover:ring-[#10b981] transition-all duration-150 focus:outline-none" aria-label="Emerald"></button>
+            <button type="button" data-color="#ef4444" class="cursor-pointer w-7 h-7 rounded-full bg-[#ef4444] ring-2 ring-offset-2 ring-offset-[#18181b] ring-transparent hover:ring-[#ef4444] transition-all duration-150 focus:outline-none" aria-label="Red"></button>
+          </div>
+          <input type="hidden" id="event-color" value="#6366f1">
+        </div>
+        <button type="submit" class="cursor-pointer w-full accent-gradient accent-gradient-hover text-white font-semibold text-sm py-3 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:ring-offset-2 focus:ring-offset-[#18181b] shadow-lg shadow-indigo-500/20">
+          Add Event
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Day Popup -->
+  <div id="day-popup" class="fixed z-40 hidden rounded-xl shadow-2xl shadow-black/50 p-4 w-72" style="background: rgba(24,24,27,0.95); border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(16px);" role="tooltip">
+    <div id="day-popup-content"></div>
+  </div>
+
+  <script>
+    // ── State ──
+    let sharedEvents = [];  // from events.json (visible to everyone)
+    let localEvents = [];   // from localStorage (only your browser)
+    let events = [];        // merged view
+    let currentYear = new Date().getFullYear();
+    let selectedColor = '#6366f1';
+    let countdownInterval = null;
+
+    function mergeEvents() {
+      const sharedIds = new Set(sharedEvents.map(e => e.id));
+      const uniqueLocal = localEvents.filter(e => !sharedIds.has(e.id));
+      events = [...sharedEvents, ...uniqueLocal];
+    }
+
+    function saveLocalEvents() {
+      localStorage.setItem('calDashLocalEvents', JSON.stringify(localEvents));
+    }
+
+    async function loadEvents() {
+      // Load shared events from events.json
+      try {
+        const res = await fetch('./events.json');
+        sharedEvents = await res.json();
+      } catch (e) {
+        sharedEvents = [];
+      }
+      // Load local-only events from localStorage
+      try {
+        localEvents = JSON.parse(localStorage.getItem('calDashLocalEvents') || '[]');
+      } catch (e) {
+        localEvents = [];
+      }
+      mergeEvents();
+    }
+
+    // ── Countdown ──
+    function getCountdown(targetDate) {
+      const diff = new Date(targetDate) - new Date();
+      if (diff <= 0) return { days: 0, hours: 0, mins: 0, secs: 0, passed: true };
+      return {
+        days: Math.floor(diff / 86400000),
+        hours: Math.floor((diff / 3600000) % 24),
+        mins: Math.floor((diff / 60000) % 60),
+        secs: Math.floor((diff / 1000) % 60),
+        passed: false
+      };
+    }
+
+    function cdUnit(val, label) {
+      return `<div class="text-center flex-1">
+        <div class="countdown-digit text-lg font-bold text-white">${String(val).padStart(2,'0')}</div>
+        <div class="text-[9px] uppercase tracking-widest font-medium text-white/25 mt-0.5">${label}</div>
+      </div>`;
+    }
+
+    // ── Tiles ──
+    function renderTiles() {
+      const container = document.getElementById('tiles-container');
+      const noEl = document.getElementById('no-events');
+      const countEl = document.getElementById('event-count');
+
+      const upcoming = events.filter(e => new Date(e.date) > new Date()).sort((a,b) => new Date(a.date) - new Date(b.date));
+      countEl.textContent = `${upcoming.length} events`;
+
+      if (!upcoming.length) { container.innerHTML = ''; noEl.classList.remove('hidden'); return; }
+      noEl.classList.add('hidden');
+
+      container.innerHTML = upcoming.map(ev => {
+        const d = new Date(ev.date);
+        const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        const timeStr = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+        const hasImg = ev.image && ev.image.trim();
+
+        return `<div class="tile-glow group rounded-2xl overflow-hidden transition-all duration-300 cursor-pointer relative" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);" onclick="scrollToCalendarDate('${ev.date}')">
+          <div class="h-32 overflow-hidden relative">
+            ${hasImg
+              ? `<img src="${ev.image}" alt="${ev.name}" class="w-full h-full object-cover event-img transition-transform duration-500 group-hover:scale-105 opacity-80" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                 <div class="absolute inset-0 items-center justify-center hidden" style="background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.1));">
+                   <svg class="w-8 h-8 text-white/10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                 </div>`
+              : `<div class="w-full h-full flex items-center justify-center" style="background: linear-gradient(135deg, ${ev.color}15, ${ev.color}08);">
+                   <svg class="w-8 h-8 text-white/10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                 </div>`
+            }
+            <div class="absolute inset-0 bg-gradient-to-t from-[#09090b] via-[#09090b]/40 to-transparent"></div>
+            <div class="absolute bottom-3 left-3.5 right-3.5">
+              <h4 class="font-semibold text-sm text-white truncate leading-tight">${ev.name}</h4>
+              <div class="flex items-center gap-1.5 mt-1">
+                <span class="w-1.5 h-1.5 rounded-full pulse-dot" style="background:${ev.color}"></span>
+                <span class="text-[11px] text-white/40 font-medium">${dateStr} &middot; ${timeStr}</span>
+              </div>
+            </div>
+          </div>
+          <div class="px-3.5 py-3">
+            <div class="flex items-center" data-countdown="${ev.id}">
+              ${cdUnit(0,'Days')}
+              <span class="text-white/10 text-xs">:</span>
+              ${cdUnit(0,'Hrs')}
+              <span class="text-white/10 text-xs">:</span>
+              ${cdUnit(0,'Min')}
+              <span class="text-white/10 text-xs">:</span>
+              ${cdUnit(0,'Sec')}
+            </div>
+          </div>
+          <button onclick="event.stopPropagation();deleteEvent(${ev.id})" class="cursor-pointer absolute top-2.5 right-2.5 p-1.5 rounded-lg bg-black/40 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-red-500/20 focus:outline-none" aria-label="Delete">
+            <svg class="w-3.5 h-3.5 text-white/50 hover:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>`;
+      }).join('');
+
+      updateCountdowns();
+    }
+
+    function updateCountdowns() {
+      events.forEach(ev => {
+        const el = document.querySelector(`[data-countdown="${ev.id}"]`);
+        if (!el) return;
+        const cd = getCountdown(ev.date);
+        if (cd.passed) {
+          el.innerHTML = `<div class="text-center w-full text-xs font-medium text-white/20">Event has passed</div>`;
+          return;
+        }
+        el.innerHTML = `${cdUnit(cd.days,'Days')}<span class="text-white/10 text-xs">:</span>${cdUnit(cd.hours,'Hrs')}<span class="text-white/10 text-xs">:</span>${cdUnit(cd.mins,'Min')}<span class="text-white/10 text-xs">:</span>${cdUnit(cd.secs,'Sec')}`;
+      });
+    }
+
+    // ── Year Calendar ──
+    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const dayLabels = ['S','M','T','W','T','F','S'];
+
+    function renderCalendar() {
+      const yearGrid = document.getElementById('year-grid');
+      document.getElementById('year-label').textContent = currentYear;
+
+      const today = new Date();
+      const eventIndex = {};
+      events.forEach(e => {
+        const d = new Date(e.date);
+        const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+        if (!eventIndex[key]) eventIndex[key] = [];
+        eventIndex[key].push(e);
+      });
+
+      const monthCounts = new Array(12).fill(0);
+      events.forEach(e => { const d = new Date(e.date); if (d.getFullYear() === currentYear) monthCounts[d.getMonth()]++; });
+
+      let html = '';
+      for (let m = 0; m < 12; m++) {
+        const firstDay = new Date(currentYear, m, 1).getDay();
+        const dim = new Date(currentYear, m + 1, 0).getDate();
+        const isCurMonth = today.getMonth() === m && today.getFullYear() === currentYear;
+        const cnt = monthCounts[m];
+
+        html += `<div class="month-card rounded-xl overflow-hidden">`;
+        // Header
+        html += `<div class="px-3 py-2 flex items-center justify-between border-b border-white/[0.04]">
+          <span class="text-[12px] font-semibold ${isCurMonth ? 'text-indigo-400' : 'text-white/50'}">${monthNames[m]}</span>
+          ${cnt > 0 ? `<span class="text-[10px] font-bold rounded-full px-1.5 py-0.5 ${isCurMonth ? 'bg-indigo-500/15 text-indigo-400' : 'bg-white/5 text-white/30'}">${cnt}</span>` : ''}
+        </div>`;
+        // Day headers
+        html += `<div class="grid grid-cols-7 px-1.5 pt-1.5 pb-0.5">`;
+        dayLabels.forEach(d => { html += `<div class="text-center text-[9px] font-medium text-white/15">${d}</div>`; });
+        html += `</div><div class="grid grid-cols-7 px-1.5 pb-2 gap-y-px">`;
+        for (let i = 0; i < firstDay; i++) html += `<div></div>`;
+        for (let day = 1; day <= dim; day++) {
+          const key = `${currentYear}-${m}-${day}`;
+          const devs = eventIndex[key] || [];
+          const isToday = isCurMonth && today.getDate() === day;
+          const has = devs.length > 0;
+          const dots = devs.slice(0,3).map(e => `<span class="inline-block w-[3px] h-[3px] rounded-full" style="background:${e.color}"></span>`).join('');
+          const tip = has ? devs.map(e => e.name).join(', ') : '';
+
+          html += `<div class="flex flex-col items-center cursor-pointer group py-0.5" onclick="handleDayClick(event,${currentYear},${m},${day})" ${tip ? `title="${tip}"` : ''}>
+            <div class="w-6 h-6 flex items-center justify-center rounded-full text-[11px] transition-colors duration-150
+              ${isToday ? 'bg-indigo-500 text-white font-bold' : has ? 'text-white/70 font-medium group-hover:bg-white/10' : 'text-white/25 group-hover:bg-white/5'}
+            ">${day}</div>
+            <div class="flex gap-px h-1">${dots}</div>
+          </div>`;
+        }
+        html += `</div></div>`;
+      }
+      yearGrid.innerHTML = html;
+    }
+
+    function changeYear(d) { currentYear += d; renderCalendar(); closeDayPopup(); }
+
+    function scrollToCalendarDate(dateStr) {
+      const d = new Date(dateStr);
+      currentYear = d.getFullYear();
+      renderCalendar();
+      setTimeout(() => {
+        const cards = document.querySelectorAll('#year-grid > div');
+        const card = cards[d.getMonth()];
+        if (card) {
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          card.style.borderColor = 'rgba(99,102,241,0.4)';
+          card.style.boxShadow = '0 0 30px -8px rgba(99,102,241,0.2)';
+          setTimeout(() => { card.style.borderColor = ''; card.style.boxShadow = ''; }, 1800);
+        }
+      }, 100);
+    }
+
+    // ── Day Popup ──
+    function handleDayClick(e, year, month, day) {
+      const dayEvs = events.filter(ev => {
+        const d = new Date(ev.date);
+        return d.getFullYear() === year && d.getMonth() === month && d.getDate() === day;
+      });
+      const popup = document.getElementById('day-popup');
+      const content = document.getElementById('day-popup-content');
+      const label = new Date(year, month, day).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
+      let h = `<div class="text-xs font-semibold text-white/50 mb-2">${label}</div>`;
+      if (!dayEvs.length) {
+        h += `<p class="text-[11px] text-white/20 mb-3">No events</p>`;
+      } else {
+        h += dayEvs.map(ev => {
+          const t = new Date(ev.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+          return `<div class="flex items-center gap-2.5 py-2 border-b border-white/[0.04] last:border-0">
+            <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${ev.color}"></span>
+            <div class="min-w-0 flex-1">
+              <div class="text-[12px] font-medium text-white/80 truncate">${ev.name}</div>
+              <div class="text-[10px] text-white/25">${t}</div>
+            </div>
+          </div>`;
+        }).join('');
+      }
+      h += `<button onclick="prefillAndOpenModal(${year},${month},${day})" class="cursor-pointer mt-3 w-full text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/15 border border-indigo-500/20 rounded-lg py-2 transition-all duration-150 focus:outline-none">+ Add event</button>`;
+
+      content.innerHTML = h;
+      const rect = e.currentTarget.getBoundingClientRect();
+      popup.style.top = `${rect.bottom + window.scrollY + 8}px`;
+      popup.style.left = `${Math.min(rect.left + window.scrollX, window.innerWidth - 300)}px`;
+      popup.classList.remove('hidden');
+      e.stopPropagation();
+    }
+
+    function closeDayPopup() { document.getElementById('day-popup').classList.add('hidden'); }
+    document.addEventListener('click', closeDayPopup);
+
+    function prefillAndOpenModal(y, m, d) {
+      closeDayPopup(); openModal();
+      document.getElementById('event-date').value = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}T09:00`;
+    }
+
+    // ── Modal ──
+    function openModal() {
+      const m = document.getElementById('modal-overlay'); m.classList.remove('hidden'); m.classList.add('flex');
+      document.getElementById('event-name').focus();
+    }
+    function closeModal() {
+      const m = document.getElementById('modal-overlay'); m.classList.add('hidden'); m.classList.remove('flex');
+      document.getElementById('event-form').reset(); resetColorPicker();
+    }
+
+    function handleAddEvent(e) {
+      e.preventDefault();
+      const name = document.getElementById('event-name').value.trim();
+      const date = document.getElementById('event-date').value;
+      const image = document.getElementById('event-image').value.trim();
+      const color = document.getElementById('event-color').value;
+      if (!name || !date) return;
+      const newEvent = { id: Date.now(), name, date: new Date(date).toISOString(), image, color };
+      localEvents.push(newEvent);
+      saveLocalEvents();
+      mergeEvents(); renderTiles(); renderCalendar(); closeModal();
+    }
+
+    function deleteEvent(id) {
+      localEvents = localEvents.filter(e => e.id !== id);
+      saveLocalEvents();
+      mergeEvents(); renderTiles(); renderCalendar();
+    }
+
+    // ── Color Picker ──
+    function resetColorPicker() {
+      selectedColor = '#6366f1';
+      document.getElementById('event-color').value = selectedColor;
+      document.querySelectorAll('#color-picker button').forEach(b => {
+        b.style.setProperty('--tw-ring-color', b.dataset.color === selectedColor ? b.dataset.color : 'transparent');
+      });
+    }
+    document.getElementById('color-picker').addEventListener('click', e => {
+      const btn = e.target.closest('button[data-color]');
+      if (!btn) return;
+      selectedColor = btn.dataset.color;
+      document.getElementById('event-color').value = selectedColor;
+      document.querySelectorAll('#color-picker button').forEach(b => {
+        b.style.setProperty('--tw-ring-color', b.dataset.color === selectedColor ? b.dataset.color : 'transparent');
+      });
+    });
+
+    // ── Keyboard ──
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeDayPopup(); } });
+
+    // ── Init ──
+    (async () => {
+      await loadEvents();
+      renderTiles();
+      renderCalendar();
+      countdownInterval = setInterval(updateCountdowns, 1000);
+    })();
+  </script>
+</body>
+</html>
