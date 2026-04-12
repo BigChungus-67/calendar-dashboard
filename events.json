@@ -78,5 +78,13 @@
     "image": "https://networksites.livenationinternational.com/networksites/g43jftly/lm_web_810x1080.jpg?format=webp&width=3840&quality=75",
     "color": "#6366f1",
     "endDate": "2026-07-11T22:00:00.000Z"
+  },
+  {
+    "id": 1775990872521,
+    "name": "Amsterdam Dance Event",
+    "date": "2026-10-20T23:00:00.000Z",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTtXb7oSi01wnZv7h9KrXcZkulg1fT7MR-olw&s",
+    "color": "#6366f1",
+    "endDate": "2026-10-26T12:00:00.000Z"
   }
 ]
