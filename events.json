@@ -1,13 +1,5 @@
 [
   {
-    "id": 3,
-    "name": "Team Offsite Retreat",
-    "date": "2026-05-02T08:00:00.000Z",
-    "endDate": "2026-05-05T18:00:00.000Z",
-    "image": "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=400&h=300&fit=crop",
-    "color": "#f97316"
-  },
-  {
     "id": 4,
     "name": "Product Launch",
     "date": "2026-05-15T18:00:00.000Z",
