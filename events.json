@@ -38,5 +38,13 @@
     "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSzCqGEgFjiN2isD6Pa6w4CaKRIs4yfa05g7g&s",
     "color": "#6366f1",
     "endDate": "2026-06-02T06:00:00.000Z"
+  },
+  {
+    "id": 1775990377970,
+    "name": "Defqon 1",
+    "date": "2026-06-24T14:00:00.000Z",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcROOePsn5aJIY4GqPv3EVSI5v7rzUhb3giIwQ&s",
+    "color": "#6366f1",
+    "endDate": "2026-06-29T22:00:00.000Z"
   }
 ]
